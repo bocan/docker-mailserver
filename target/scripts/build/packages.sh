@@ -79,7 +79,7 @@ function _install_packages() {
   local CODECS_PACKAGES=(
     altermime arj bzip2
     cabextract cpio file
-    gzip lhasa liblz4-tool
+    gzip lhasa lz4
     lrzip lzop nomarch
     p7zip-full pax rpm2cpio
     unrar-free unzip xz-utils
@@ -162,14 +162,16 @@ function _install_dovecot() {
 
 function _install_rspamd() {
   _log 'debug' 'Installing Rspamd'
-  _log 'trace' 'Adding Rspamd PPA'
-  curl -sSfL https://rspamd.com/apt-stable/gpg.key | gpg --dearmor >/etc/apt/trusted.gpg.d/rspamd.gpg
-  echo \
-    "deb [signed-by=/etc/apt/trusted.gpg.d/rspamd.gpg] http://rspamd.com/apt-stable/ ${VERSION_CODENAME} main" \
-    >/etc/apt/sources.list.d/rspamd.list
+  if [[ ${RSPAMD_COMMUNITY_REPO} -eq 1 ]]; then
+    _log 'trace' 'Adding Rspamd PPA'
+    curl -sSfL https://rspamd.com/apt-stable/gpg.key | gpg --dearmor >/etc/apt/trusted.gpg.d/rspamd.gpg
+    echo \
+      "deb [signed-by=/etc/apt/trusted.gpg.d/rspamd.gpg] http://rspamd.com/apt-stable/ ${VERSION_CODENAME} main" \
+      >/etc/apt/sources.list.d/rspamd.list
 
-  _log 'trace' 'Updating package index after adding PPAs'
-  apt-get "${QUIET}" update
+    _log 'trace' 'Updating package index after adding PPAs'
+    apt-get "${QUIET}" update
+  fi
 
   _log 'trace' 'Installing actual package'
   apt-get "${QUIET}" install rspamd redis-server

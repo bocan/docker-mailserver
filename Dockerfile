@@ -5,12 +5,14 @@
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG DOVECOT_COMMUNITY_REPO=0
+ARG RSPAMD_COMMUNITY_REPO=0
 ARG LOG_LEVEL=trace
 
-FROM docker.io/debian:12-slim AS stage-base
+FROM docker.io/debian:sid-slim AS stage-base
 
 ARG DEBIAN_FRONTEND
 ARG DOVECOT_COMMUNITY_REPO
+ARG RSPAMD_COMMUNITY_REPO
 ARG LOG_LEVEL
 
 SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
@@ -22,7 +24,7 @@ SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
 COPY target/bin/sedfile /usr/local/bin/sedfile
 RUN <<EOF
   chmod +x /usr/local/bin/sedfile
-  adduser --quiet --system --group --disabled-password --home /var/lib/clamav --no-create-home --uid 200 clamav
+  useradd --system --user-group --home-dir /var/lib/clamav --no-create-home --uid 200 --shell /usr/sbin/nologin  clamav
 EOF
 
 COPY target/scripts/build/packages.sh /build/
@@ -152,10 +154,11 @@ COPY target/amavis/postfix-amavis.cf /etc/dms/postfix/master.d/
 RUN <<EOF
   sedfile -i -r 's/#(@|   \\%)bypass/\1bypass/g' /etc/amavis/conf.d/15-content_filter_mode
   # add users clamav and amavis to each others group
-  adduser clamav amavis
-  adduser amavis clamav
+  usermod -G amavis clamav
+  usermod -G clamav amavis
   # no syslog user in Debian compared to Ubuntu
-  adduser --system syslog
+  useradd --system syslog
+
   useradd -u 5000 -d /home/docker -s /bin/bash -p "$(echo docker | openssl passwd -1 -stdin)" docker
   echo "0 4 * * * /usr/local/bin/virus-wiper" | crontab -
   chmod 644 /etc/amavis/conf.d/*

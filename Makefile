@@ -2,7 +2,7 @@ SHELL       := /bin/bash
 .SHELLFLAGS += -e -u -o pipefail
 
 export REPOSITORY_ROOT := $(CURDIR)
-export IMAGE_NAME      ?= mailserver-testing:ci
+export IMAGE_NAME      ?= mailserver-sid-testing:ci
 export NAME            ?= $(IMAGE_NAME)
 
 MAKEFLAGS              += --no-print-directory
