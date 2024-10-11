@@ -15,6 +15,7 @@ ARG DOVECOT_COMMUNITY_REPO
 ARG RSPAMD_COMMUNITY_REPO
 ARG LOG_LEVEL
 
+
 SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
 
 # -----------------------------------------------
@@ -30,7 +31,9 @@ EOF
 COPY target/scripts/build/packages.sh /build/
 COPY target/scripts/helpers/log.sh /usr/local/bin/helpers/log.sh
 
-RUN /bin/bash /build/packages.sh && rm -r /build
+COPY target/bin/rspamd_3.10.0_amd64.deb /build/
+RUN /bin/bash /build/packages.sh && rm -r /build && rm -f target/bin/rspamd_3.10.0_amd64.deb
+
 
 # -----------------------------------------------
 # --- Compile deb packages ----------------------

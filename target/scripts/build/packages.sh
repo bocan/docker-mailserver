@@ -89,6 +89,7 @@ function _install_packages() {
     binutils bsd-mailx
     dbconfig-no-thanks dumb-init iproute2
     libdate-manip-perl libldap-common libmail-spf-perl libnet-dns-perl
+    libdw1t64 libglib2.0-0t64 libhyperscan5 libluajit-5.1-2
     locales logwatch netcat-openbsd
     nftables # primarily for Fail2Ban
     rsyslog supervisor
@@ -174,7 +175,8 @@ function _install_rspamd() {
   fi
 
   _log 'trace' 'Installing actual package'
-  apt-get "${QUIET}" install rspamd redis-server
+  apt-get "${QUIET}" install redis-server
+  dpkg -i /build/rspamd_3.10.0_amd64.deb
 }
 
 function _install_fail2ban() {
