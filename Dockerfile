@@ -33,8 +33,7 @@ EOF
 COPY target/scripts/build/packages.sh /build/
 COPY target/scripts/helpers/log.sh /usr/local/bin/helpers/log.sh
 
-COPY target/bin/rspamd_3.10.0_amd64.deb /build/
-RUN /bin/bash /build/packages.sh && rm -r /build && rm -f target/bin/rspamd_3.10.0_amd64.deb
+RUN /bin/bash /build/packages.sh && rm -r /build
 
 
 # -----------------------------------------------
