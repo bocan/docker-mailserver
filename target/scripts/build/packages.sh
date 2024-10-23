@@ -173,10 +173,20 @@ function _install_rspamd() {
     _log 'trace' 'Updating package index after adding PPAs'
     apt-get "${QUIET}" update
   fi
+  if [[ ${RSPAMD_CHRISFU_REPO} -eq 1 ]]; then
+    _log 'trace' 'Adding Rspamd PPA'
+    curl -sSfL https://bocan.github.io/ppa/KEY.gpg | gpg --dearmor >/etc/apt/trusted.gpg.d/rspamd.gpg
+    echo \
+      "deb [signed-by=/etc/apt/trusted.gpg.d/rspamd.gpg] https://bocan.github.io/ppa/ ./" \
+      >/etc/apt/sources.list.d/rspamd.list
+
+    _log 'trace' 'Updating package index after adding PPAs'
+    apt-get "${QUIET}" update
+  fi
+
 
   _log 'trace' 'Installing actual package'
-  apt-get "${QUIET}" install redis-server
-  dpkg -i /build/rspamd_3.10.0_amd64.deb
+  apt-get "${QUIET}" install redis-server rspamd
 }
 
 function _install_fail2ban() {
