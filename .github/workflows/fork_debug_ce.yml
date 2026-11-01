@@ -43,4 +43,8 @@ jobs:
           echo '::group::mail.log'; docker exec dms cat /var/log/mail/mail.log || true; echo '::endgroup::'
           echo '::group::doveconf -n'; docker exec dms doveconf -n || true; echo '::endgroup::'
           echo '::group::mailbox'; docker exec dms find /var/mail -type f || true; echo '::endgroup::'
+          echo '::group::keywords'
+          docker exec dms cat /var/mail/localhost.localdomain/user1/dovecot-keywords || true
+          docker exec dms doveadm fetch -u user1@localhost.localdomain 'flags hdr.subject' all || true
+          echo '::endgroup::'
           echo '::group::docker logs'; docker logs dms 2>&1 | tail -100; echo '::endgroup::'
