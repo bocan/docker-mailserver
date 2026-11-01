@@ -1,0 +1,46 @@
+name: 'Fork: Debug Dovecot CE delivery (temporary)'
+
+on:
+  push:
+    branches: [fix/dovecot-ce-config]
+    paths: [.github/workflows/fork_debug_ce.yml]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  debug:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Start container'
+        run: |
+          set -euo pipefail
+          make generate-accounts
+          cp -r test/config /tmp/dms-config
+          docker run -d --name dms --hostname mail.example.test \
+            -v /tmp/dms-config:/tmp/docker-mailserver \
+            "ghcr.io/${{ github.repository }}:candidate"
+          timeout 120 bash -c 'until docker logs dms 2>&1 | grep -q "is up and running"; do sleep 2; done'
+
+      - name: 'Deliver one mail'
+        run: |
+          docker exec dms bash -c 'printf "Subject: ce-debug\n\nhello\n" | sendmail user1@localhost.localdomain'
+          sleep 15
+
+      - name: 'Diagnostics'
+        if: always()
+        run: |
+          docker exec dms supervisorctl status || true
+          echo '::group::mail.log'; docker exec dms cat /var/log/mail/mail.log || true; echo '::endgroup::'
+          echo '::group::doveconf -n'; docker exec dms doveconf -n || true; echo '::endgroup::'
+          echo '::group::mailbox'; docker exec dms find /var/mail -type f || true; echo '::endgroup::'
+          echo '::group::docker logs'; docker logs dms 2>&1 | tail -100; echo '::endgroup::'
